@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartSend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0f15;--s1:#131824;--s2:#1a2132;--bd:#252e42;--tx:#e8ecf4;--mut:#8791a8;--ac:#8b9bff;--ok:#4fd8b0;--wait:#f2b96b;--bad:#ff7b86}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 Manrope,system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;gap:16px;padding:22px 0;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--bg);z-index:5}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--ac);color:#0c0f15;display:grid;place-items:center;font-weight:800;font-size:18px}
+h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em}.sub{color:var(--mut);font-size:12px}
+.sp{flex:1}
+.pill{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:var(--s2);color:var(--mut)}
+.pill.ok{background:#4fd8b01c;color:var(--ok)}.pill.wait{background:#f2b96b1c;color:var(--wait)}.pill.bad{background:#ff7b861c;color:var(--bad)}
+button{font:inherit;font-weight:700;padding:9px 16px;border:0;border-radius:8px;background:var(--ac);color:#0c0f15;cursor:pointer}
+button:hover{filter:brightness(1.1)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.s{padding:5px 10px;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);margin:26px 0;border-bottom:1px solid var(--bd);padding-bottom:22px}
+.kpis div+div{padding-left:22px;border-left:1px solid var(--bd)}
+.kpis b{display:block;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.1}.kpis span{color:var(--mut);font-size:12.5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+h2{font-size:15px;margin:0 0 4px;font-weight:800}.hint{color:var(--mut);font-size:12.5px;margin:0 0 14px}
+section{margin-bottom:34px}
+.lane{display:grid;grid-template-columns:10px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--bd)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--wait)}.dot.ok{background:var(--ok);box-shadow:0 0 0 4px #4fd8b01f}
+.bar{height:4px;background:var(--s2);border-radius:4px;margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.qr{grid-column:2/4;background:#fff;border-radius:10px;padding:6px;width:fit-content}.qr img{display:block}
+.add{display:flex;gap:8px;margin-top:12px}
+input,textarea{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:9px 11px;font:inherit}
+textarea{resize:vertical}label{display:block;font-size:12px;color:var(--mut);font-weight:600}
+.drop{border:1.5px dashed var(--bd);border-radius:12px;padding:22px;text-align:center;color:var(--mut);cursor:pointer;transition:.15s}
+.drop:hover,.drop.on{border-color:var(--ac);color:var(--tx);background:var(--s1)}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.prev{margin-top:12px;background:#0f3b32;border-radius:12px 12px 12px 3px;padding:10px 13px;max-width:92%;white-space:pre-wrap;color:#dff7ef}
+.tabs{display:flex;gap:6px;margin:10px 0 12px;flex-wrap:wrap}.tabs button{background:transparent;color:var(--mut);border:1px solid var(--bd);padding:5px 12px;font-size:12.5px}
+.tabs button.on{background:var(--s2);color:var(--tx);border-color:var(--ac)}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mut);font-weight:600;text-align:left;font-size:12px}
+td,th{padding:8px 10px 8px 0;border-top:1px solid var(--bd)}
+.ch{font-weight:700;font-size:12px}.sent{color:var(--ok)}.pending{color:var(--wait)}.invalid,.failed{color:var(--bad)}.optout{color:var(--mut)}
+.tw{overflow-x:auto}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--s2);border:1px solid var(--bd);padding:10px 16px;border-radius:10px;display:none}
+@media(max-width:820px){.grid{grid-template-columns:1fr;gap:0}.kpis{grid-template-columns:1fr 1fr;gap:18px}.kpis div:nth-child(3){padding-left:0;border-left:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap">
+<header><div class="logo">S</div><div><h1>SmartSend</h1><div class="sub">Prévia local · integrações e envios desativados</div></div><div class="sp"></div>
+<span id="run" class="pill">Modo demonstração</span><button id="go" disabled title="Envios desativados nesta prévia">Envio desativado</button></header>
+
+<div class="kpis"><div><b id="k1">0</b><span>enviados hoje</span></div><div><b id="k2">0</b><span>na fila</span></div><div><b id="k3">0</b><span>enviados no total</span></div><div><b id="k4">0</b><span>não contatados</span></div></div>
+
+<div class="grid"><div>
+<section><h2>Contas (simulação)</h2><p class="hint">A conexão com WhatsApp e a alternância de contas estão desativadas nesta prévia.</p>
+<div id="lanes"></div>
+<div class="add"><input id="lbl" placeholder="Nome do número (ex.: Comercial 1)"><button class="g" onclick="addAcc()">Conectar número</button></div></section>
+
+<section><h2>Planilha de contatos</h2><p class="hint">CSV com as colunas nome, empresa e telefone. Colunas extras viram variáveis.</p>
+<div class="drop" id="drop" onclick="$('file').click()">Arraste o CSV aqui ou clique para escolher</div>
+<input type="file" id="file" accept=".csv" hidden onchange="up(this.files[0])"><p id="upmsg" class="hint"></p></section></div>
+
+<div><section><h2>Mensagem</h2><p class="hint">Use {{nome}} e {{empresa}}. Para alternar textos, separe-os com uma linha contendo apenas ---</p>
+<textarea id="tpl" rows="5" oninput="prev()"></textarea>
+<div class="row3"><div><label>Limite por número/dia</label><input id="lim" type="number" min="1"></div><div><label>Intervalo mín. (s)</label><input id="min" type="number" min="1"></div><div><label>Intervalo máx. (s)</label><input id="max" type="number" min="1"></div></div>
+<div class="prev" id="prev"></div>
+<p><button class="g" onclick="saveCfg()">Salvar mensagem e limites</button></p></section></div></div>
+
+<section><h2>Fila de demonstração</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="g s" onclick="downloadCsv(true)">Baixar leads não contatados</button>
+<button class="g s" onclick="downloadCsv(false)">Baixar relatório completo</button><button class="g s" onclick="clearDemo()">Limpar pendentes</button></div>
+<div class="tabs" id="tabs"></div>
+<div class="tw"><table><thead><tr><th>Nome</th><th>Empresa</th><th>Telefone</th><th>Status</th><th>Enviado por / motivo</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</div><div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);let flt='all';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LBL={pending:'Pendente',sent:'Exemplo enviado',invalid:'Sem WhatsApp',failed:'Falha simulada',optout:'Pediu para sair'},NC=['invalid','failed','optout'];
+let contacts=[
+ {nome:'Maria Silva',empresa:'Padaria Central',phone:'5511999990001',status:'pending'},
+ {nome:'João Costa',empresa:'Oficina Horizonte',phone:'5511988880002',status:'sent',via:'demo'},
+ {nome:'Ana Souza',empresa:'Mercado do Bairro',phone:'5511977770003',status:'invalid',reason:'Número inválido (exemplo)'}
+];
+let accounts=[{id:'demo',label:'Conta demonstrativa',ready:false,sent:1}];
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3000)}
+function api(){return Promise.resolve({})}
+function load(){draw()}
+function clearDemo(){contacts=contacts.filter(c=>c.status==='sent');draw();toast('Fila de demonstração limpa. Nenhum envio foi realizado.')}
+function downloadCsv(only){const rows=contacts.filter(c=>!only||NC.includes(c.status));const csv=['nome,empresa,telefone,status',...rows.map(c=>[c.nome,c.empresa,c.phone,LBL[c.status]].map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.download=only?'demonstracao-nao-contatados.csv':'demonstracao-relatorio.csv';a.click();URL.revokeObjectURL(a.href)}
+async function toggle(){toast('Envios desativados nesta prévia.')}
+async function addAcc(){toast('Conexão com WhatsApp desativada na prévia.')}
+async function rm(id){if(confirm('Remover conta demonstrativa da tela?')){accounts=accounts.filter(a=>a.id!==id);draw()}}
+async function up(f){if(!f)return; const text=await f.text(); const lines=text.trim().split(/\r?\n/); const added=Math.max(0,lines.length-1); $('upmsg').textContent=`Arquivo lido apenas nesta demonstração · ${added} linha(s) encontrada(s). Nenhuma mensagem será enviada.`; toast('Importação apenas visual; nada foi enviado.');}
+async function saveCfg(){toast('Configurações ficam apenas nesta prévia.')}
+function prev(){const v=$('tpl').value.split(/\n-{3,}\n/)[0]||'';$('prev').textContent=v.replace(/{{\s*(\w+)\s*}}/g,(_,k)=>({nome:'Maria',empresa:'Padaria Central'}[k.toLowerCase()]||''))}
+const dz=$('drop');['dragover','dragenter'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.add('on')}));['dragleave','drop'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.remove('on')}));dz.addEventListener('drop',x=>up(x.dataTransfer.files[0]));
+function setF(f){flt=f;draw()}
+function draw(){const c=contacts,n=s=>c.filter(x=>x.status===s).length,lab=Object.fromEntries(accounts.map(a=>[a.id,a.label]));$('k1').textContent=accounts.reduce((s,a)=>s+a.sent,0);$('k2').textContent=n('pending');$('k3').textContent=n('sent');$('k4').textContent=c.filter(x=>NC.includes(x.status)).length;$('run').textContent='Modo demonstração';$('lanes').innerHTML=accounts.map(a=>`<div class="lane"><span class="dot"></span><div><b>${esc(a.label)}</b> <span class="sub">desconectada</span><div class="bar"><i style="width:0%"></i></div><span class="sub">Nenhum envio será feito</span></div><button class="g s" onclick="rm('${a.id}')">Remover</button></div>`).join('')||'<p class="hint">Nenhuma conta de demonstração.</p>';const tabs=[['all','Todos',c.length],['pending','Pendentes',n('pending')],['sent','Exemplos',n('sent')],['nc','Não contatados',c.filter(x=>NC.includes(x.status)).length]];$('tabs').innerHTML=tabs.map(t=>`<button class="${flt===t[0]?'on':''}" onclick="setF('${t[0]}')">${t[1]} (${t[2]})</button>`).join('');const list=c.filter(x=>flt==='all'||(flt==='nc'?NC.includes(x.status):x.status===flt));$('rows').innerHTML=list.map(x=>`<tr><td>${esc(x.nome)}</td><td>${esc(x.empresa)}</td><td>${esc(x.phone)}</td><td class="ch ${x.status}">${LBL[x.status]}</td><td>${esc(x.status==='sent'?lab[x.via]||'Exemplo local':x.reason||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="sub">Nada por aqui ainda.</td></tr>'}
+$('tpl').value='Olá, {{nome}}! Esta é uma mensagem de demonstração para {{empresa}}.';$('lim').value=30;$('min').value=12;$('max').value=30;prev();draw();
+</script>
